@@ -1,58 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ihre Route</title>
+    <title id="dynamic-title">Ihre Route von ... bis ...</title>
     <script src="https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.js"></script>
     <style>
-        body {
-            background-color: #2e2e2e; /* Dunkelgrau */
-            color: white; /* Weißer Text */
-            font-family: Arial, sans-serif;
+        :root {
+            --bg-color: #121212;
+            --text-color: #ffffff;
         }
+
+        [data-theme="light"] {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
         #map {
             width: 100%;
             height: 600px;
-            margin-bottom: 20px;
         }
+
         #info {
+            margin-top: 20px;
             padding: 10px;
-            background-color: #3a3a3a; /* Etwas helleres Grau */
-            border: 1px solid #555;
+            background-color: #1e1e1e;
+            border: 1px solid #333;
         }
-        select {
-            margin-bottom: 20px;
-            padding: 5px;
-            font-size: 16px;
+
+        #language-selector {
+            position: absolute;
+            top: 10px;
+            right: 10px;
         }
     </style>
     <script>
-        let language = 'de'; // Standard: Deutsch
-
-        // Sprache ändern und Seite aktualisieren
-        function setLanguage(lang) {
-            language = lang;
-            document.body.setAttribute('lang', lang);
-            updateTitle(); // Aktualisiere den Titel dynamisch
-            showRoute(); // Route neu rendern
-        }
-
-        // Dynamischer Titel basierend auf Sprache und Route
-        function updateTitle(start = "", end = "") {
-            const title = language === 'de'
-                ? start && end ? `Ihre Route von ${start} bis ${end}` : "Ihre Route"
-                : start && end ? `Your Route from ${start} to ${end}` : "Your Route";
-            document.title = title;
-            document.getElementById("title").innerText = title;
-        }
-
-        // Zeitformatierung in Stunden und Minuten
-        function formatTime(seconds) {
-            const hours = Math.floor(seconds / 3600);
-            const minutes = Math.round((seconds % 3600) / 60);
-            return hours > 0 ? `${hours} h ${minutes} min` : `${minutes} min`;
-        }
+        mapkit.init({
+            authorizationCallback: function (done) {
+                done("eyJraWQiOiJMU1pDR0JMR0c1IiwidHlwIjoiSldUIiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJUR004M1FTSEFIIiwiaWF0IjoxNzM2MTk0NzYwLCJvcmlnaW4iOiJieXNhbTA0LmdpdGh1Yi5pbyJ9.LBJ2V_TbE75r68I08JHytaZx5SnlQ8bl4-e_ZUaDavXxtqk_leB_FKnuFaDeODEwjtR2jeKRQI-3p41tLrBkPg");
+            }
+        });
 
         function showRoute() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -60,33 +55,28 @@
             const end = urlParams.get('end');
 
             if (!start || !end) {
-                alert(language === 'de' ? "Bitte Start- und Zielkoordinaten angeben." : "Please provide start and end coordinates.");
+                alert("Bitte Start- und Zielkoordinaten angeben.");
                 return;
             }
-
-            updateTitle(start, end); // Aktualisiere den Titel basierend auf Route
 
             let startCoord = new mapkit.Coordinate(...start.split(',').map(Number));
             let endCoord = new mapkit.Coordinate(...end.split(',').map(Number));
 
-            // Initialisiere die Karte
             let map = new mapkit.Map("map", {
                 showsCompass: mapkit.FeatureVisibility.Visible,
                 showsScale: mapkit.FeatureVisibility.Visible,
-                colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? mapkit.Map.ColorSchemes.Dark : mapkit.Map.ColorSchemes.Light,
                 center: startCoord,
                 region: new mapkit.CoordinateRegion(
                     startCoord,
                     new mapkit.CoordinateSpan(0.5, 0.5)
-                )
+                ),
+                colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? mapkit.Map.ColorSchemes.Dark : mapkit.Map.ColorSchemes.Light
             });
 
-            // Marker hinzufügen
-            let startAnnotation = new mapkit.MarkerAnnotation(startCoord, { title: language === 'de' ? "Start" : "Start" });
-            let endAnnotation = new mapkit.MarkerAnnotation(endCoord, { title: language === 'de' ? "Ziel" : "Destination" });
+            let startAnnotation = new mapkit.MarkerAnnotation(startCoord, { title: "Start" });
+            let endAnnotation = new mapkit.MarkerAnnotation(endCoord, { title: "Ziel" });
             map.addAnnotations([startAnnotation, endAnnotation]);
 
-            // Route berechnen
             let directions = new mapkit.Directions();
             directions.route(
                 {
@@ -97,11 +87,13 @@
                 (error, data) => {
                     if (error) {
                         console.error("Fehler bei der Routenberechnung:", error);
-                        alert(language === 'de' ? "Fehler bei der Routenberechnung." : "Error calculating the route.");
+                        alert("Fehler bei der Routenberechnung: " + error.message);
                         return;
                     }
 
                     let route = data.routes[0];
+                    console.log("Route-Daten:", route);
+
                     let points = [];
                     for (let step of route.steps) {
                         points.push(...step.path);
@@ -118,16 +110,19 @@
                     map.addOverlay(polyline);
                     map.showItems([polyline]);
 
-                    // Routeninformationen anzeigen
                     const infoDiv = document.getElementById("info");
                     const distanceInKm = (route.distance / 1000).toFixed(2);
-                    const travelTime = formatTime(route.expectedTravelTime);
+                    const travelTimeInMinutes = Math.round(route.expectedTravelTime / 60);
+
+                    const hours = Math.floor(travelTimeInMinutes / 60);
+                    const minutes = travelTimeInMinutes % 60;
 
                     const appleMapsLink = `https://maps.apple.com/?saddr=${start}&daddr=${end}`;
+
                     let routeDetails = `
-                        <p><strong>${language === 'de' ? "Entfernung" : "Distance"}:</strong> ${distanceInKm} km</p>
-                        <p><strong>${language === 'de' ? "Reisezeit" : "Travel Time"}:</strong> ${travelTime}</p>
-                        <p><strong>${language === 'de' ? "Routenführung" : "Route Instructions"}:</strong></p>
+                        <p><strong>Entfernung:</strong> ${distanceInKm} km</p>
+                        <p><strong>Reisezeit:</strong> ${hours} Stunden und ${minutes} Minuten</p>
+                        <p><strong>Routenführung:</strong></p>
                         <ul>
                     `;
 
@@ -135,23 +130,51 @@
                         routeDetails += `<li>${step.instructions}</li>`;
                     }
                     routeDetails += `</ul>`;
-                    routeDetails += `<p><a href="${appleMapsLink}" target="_blank">${language === 'de' ? "Route in Apple Maps öffnen" : "Open route in Apple Maps"}</a></p>`;
+                    routeDetails += `<p><a href="${appleMapsLink}" target="_blank">Route in Apple Maps öffnen</a></p>`;
                     infoDiv.innerHTML = routeDetails;
                 }
             );
         }
+
+        function setDynamicTitle(start, end) {
+            const title = document.getElementById("dynamic-title");
+            title.textContent = `Ihre Route von ${start} bis ${end}`;
+            document.getElementById("title").textContent = title.textContent;
+        }
+
+        function changeLanguage() {
+            const language = document.getElementById("language").value;
+            const translations = {
+                de: {
+                    title: "Ihre Route von ... bis ...",
+                    travelTime: "Reisezeit:",
+                },
+                en: {
+                    title: "Your Route from ... to ...",
+                    travelTime: "Travel time:",
+                },
+            };
+
+            const translation = translations[language];
+            document.querySelector("h1").textContent = translation.title;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        });
     </script>
 </head>
-<body>
-    <select onchange="setLanguage(this.value)">
-        <option value="de" selected>Deutsch</option>
-        <option value="en">English</option>
-    </select>
-    <h1 id="title">Ihre Route</h1>
+<body onload="showRoute()">
+    <div id="language-selector">
+        <label for="language">Sprache: </label>
+        <select id="language" onchange="changeLanguage()">
+            <option value="de">Deutsch</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+    <h1 id="title">Ihre Route von ... bis ...</h1>
     <div id="map"></div>
     <div id="info"></div>
-    <script>
-        showRoute(); // Initialer Aufruf der Funktion
-    </script>
 </body>
 </html>
