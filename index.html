@@ -42,31 +42,40 @@
             // Route berechnen
             let directions = new mapkit.Directions();
             directions.route(
-                {
-                    origin: startCoord,
-                    destination: endCoord
-                },
-                (error, data) => {
-                    if (error) {
-                        console.error("Fehler bei der Routenberechnung:", error);
-                        alert("Fehler bei der Routenberechnung: " + error);
-                        return;
-                    }
+    { origin: startCoord, destination: endCoord },
+    (error, data) => {
+        if (error) {
+            console.error("Fehler bei der Routenberechnung:", error);
+            alert("Fehler bei der Routenberechnung: " + error.message);
+            return;
+        }
 
-                    // Route auf der Karte anzeigen
-                    let route = data.routes[0];
-                    let routePolyline = new mapkit.PolylineOverlay(route.path, {
-                        style: new mapkit.Style({
-                            lineWidth: 5,
-                            strokeColor: "#007aff",
-                            strokeOpacity: 0.8
-                        })
-                    });
+        // Extrahiere die erste Route
+        let route = data.routes[0];
 
-                    map.addOverlay(routePolyline);
+        // Erstelle eine Liste von Koordinaten aus den Route-Steps
+        let points = [];
+        for (let step of route.steps) {
+            points.push(...step.path);
+        }
 
-                    // Karte auf die gesamte Route zoomen
-                    map.showItems([routePolyline]);
+        // Erstelle die PolylineOverlay mit den Punkten
+        let polyline = new mapkit.PolylineOverlay(points, {
+            style: new mapkit.Style({
+                lineWidth: 5,
+                strokeColor: "#007aff",
+                strokeOpacity: 0.8
+            })
+        });
+
+        // Füge die PolylineOverlay zur Karte hinzu
+        map.addOverlay(polyline);
+
+        // Zoome die Karte, um die gesamte Route anzuzeigen
+        map.showItems([polyline]);
+    }
+);
+
                 }
             );
         }
