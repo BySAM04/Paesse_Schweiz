@@ -35,6 +35,13 @@
             background-color: #1e1e1e;
             border: 1px solid #333;
         }
+
+        #logo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 100px;
+        }
     </style>
     <script>
         mapkit.init({
@@ -172,6 +179,7 @@
     </script>
 </head>
 <body onload="showRoute()">
+    <img id="logo" src="bysam_logo_png.png" alt="By SAM Logo">
     <h1 id="title">Ihre Route von ... bis ...</h1>
     <div id="map"></div>
     <div id="info"></div>
