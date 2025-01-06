@@ -69,6 +69,7 @@
             let startCoord = new mapkit.Coordinate(...start.split(',').map(Number));
             let endCoord = new mapkit.Coordinate(...end.split(',').map(Number));
 
+            // Initialisiere die Karte
             let map = new mapkit.Map("map", {
                 showsCompass: mapkit.FeatureVisibility.Visible,
                 showsScale: mapkit.FeatureVisibility.Visible,
@@ -80,10 +81,12 @@
                 )
             });
 
+            // Marker hinzufügen
             let startAnnotation = new mapkit.MarkerAnnotation(startCoord, { title: language === 'de' ? "Start" : "Start" });
             let endAnnotation = new mapkit.MarkerAnnotation(endCoord, { title: language === 'de' ? "Ziel" : "Destination" });
             map.addAnnotations([startAnnotation, endAnnotation]);
 
+            // Route berechnen
             let directions = new mapkit.Directions();
             directions.route(
                 {
@@ -115,6 +118,7 @@
                     map.addOverlay(polyline);
                     map.showItems([polyline]);
 
+                    // Routeninformationen anzeigen
                     const infoDiv = document.getElementById("info");
                     const distanceInKm = (route.distance / 1000).toFixed(2);
                     const travelTime = formatTime(route.expectedTravelTime);
@@ -138,7 +142,7 @@
         }
     </script>
 </head>
-<body onload="showRoute()">
+<body>
     <select onchange="setLanguage(this.value)">
         <option value="de" selected>Deutsch</option>
         <option value="en">English</option>
@@ -146,5 +150,8 @@
     <h1 id="title">Ihre Route</h1>
     <div id="map"></div>
     <div id="info"></div>
+    <script>
+        showRoute(); // Initialer Aufruf der Funktion
+    </script>
 </body>
 </html>
