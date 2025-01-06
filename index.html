@@ -165,9 +165,14 @@
                     const hours = Math.floor(travelTimeInMinutes / 60);
                     const minutes = travelTimeInMinutes % 60;
 
+                    const appleMapsLink = `https://maps.apple.com/?saddr=${start}&daddr=${end}`;
+                    const googleMapsLink = `https://www.google.com/maps/dir/?api=1&origin=${start}&destination=${end}`;
+
                     let routeDetails = `
                         <p><strong>Entfernung:</strong> ${distanceInKm} km</p>
                         <p><strong>Reisezeit:</strong> ${hours} Stunden und ${minutes} Minuten</p>
+                        <p><a href="${appleMapsLink}" target="_blank">Route in Apple Maps öffnen</a></p>
+                        <p><a href="${googleMapsLink}" target="_blank">Route in Google Maps öffnen</a></p>
                     `;
 
                     infoDiv.innerHTML = routeDetails;
