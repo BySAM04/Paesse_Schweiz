@@ -105,15 +105,11 @@
                 return;
             }
 
-            // Prüfe und bereinige Koordinaten (z. B. zusätzliche Leerzeichen entfernen)
-            const startCoords = start.split(",").map(coord => parseFloat(coord.trim()));
-            const endCoords = end.split(",").map(coord => parseFloat(coord.trim()));
+            // Dynamischen Titel setzen
+            setDynamicTitle(start, end);
 
-            if (startCoords.length !== 2 || endCoords.length !== 2 || isNaN(startCoords[0]) || isNaN(startCoords[1]) || isNaN(endCoords[0]) || isNaN(endCoords[1])) {
-                alert("Ungültige Koordinaten. Bitte prüfen Sie die Eingabe.");
-                return;
-            }
-
+            const startCoords = start.split(",").map(Number);
+            const endCoords = end.split(",").map(Number);
             const startCoord = new mapkit.Coordinate(startCoords[0], startCoords[1]);
             const endCoord = new mapkit.Coordinate(endCoords[0], endCoords[1]);
 
@@ -147,8 +143,6 @@
                     }
 
                     let route = data.routes[0];
-                    console.log("Route-Daten:", route);
-
                     let points = [];
                     for (let step of route.steps) {
                         points.push(...step.path);
@@ -168,49 +162,20 @@
                     const infoDiv = document.getElementById("info");
                     const distanceInKm = (route.distance / 1000).toFixed(2);
                     const travelTimeInMinutes = Math.round(route.expectedTravelTime / 60);
-
                     const hours = Math.floor(travelTimeInMinutes / 60);
                     const minutes = travelTimeInMinutes % 60;
-
-                    const appleMapsLink = `https://maps.apple.com/?saddr=${start}&daddr=${end}`;
 
                     let routeDetails = `
                         <p><strong>Entfernung:</strong> ${distanceInKm} km</p>
                         <p><strong>Reisezeit:</strong> ${hours} Stunden und ${minutes} Minuten</p>
-                        <p><strong>Routenführung:</strong></p>
-                        <ul>
                     `;
 
-                    for (let step of route.steps) {
-                        routeDetails += `<li>${translateInstructions(step.instructions)}</li>`;
-                    }
-                    routeDetails += `</ul>`;
-                    routeDetails += `<p><a href="${appleMapsLink}" target="_blank">Route in Apple Maps öffnen</a></p>`;
                     infoDiv.innerHTML = routeDetails;
                 }
             );
         }
 
-        function translateInstructions(instruction) {
-            const translations = {
-                "Turn left": "Links abbiegen",
-                "Turn right": "Rechts abbiegen",
-                "Continue straight": "Geradeaus weiterfahren",
-                "Take exit": "Ausfahrt nehmen",
-                "Merge onto": "Auffahren auf",
-                "Keep left": "Links halten",
-                "Keep right": "Rechts halten",
-                "undefined": "Unbekannte Anweisung"
-            };
-
-            return translations[instruction] || instruction;
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-            showRoute();
-        });
+        document.addEventListener("DOMContentLoaded", showRoute);
     </script>
 </head>
 <body>
