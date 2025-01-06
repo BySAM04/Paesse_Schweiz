@@ -28,11 +28,11 @@
         }
 
         #map {
-            width: 90%;
+            width: 100%;
             height: 600px;
             margin: 20px auto;
             border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         #info {
@@ -44,7 +44,7 @@
             border-radius: 12px;
             width: 90%;
             max-width: 800px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             font-size: 16px;
             line-height: 1.6;
         }
@@ -59,12 +59,12 @@
         h1 {
             margin: 40px auto 20px;
             text-align: center;
-            font-size: 36px;
+            font-size: 32px;
             font-weight: 600;
             line-height: 1.2;
             word-wrap: break-word;
             overflow-wrap: break-word;
-            max-width: 90%;
+            max-width: calc(100% - 150px);
         }
 
         footer {
@@ -101,32 +101,12 @@
             font-weight: 600;
             margin: 10px 5px;
             text-align: center;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
         }
 
         .button:hover {
             background-color: #005bb5;
-            transform: scale(1.05);
-        }
-
-        .button:active {
-            transform: scale(0.95);
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 28px;
-            }
-
-            #map {
-                height: 400px;
-            }
-
-            .button {
-                padding: 10px 20px;
-                font-size: 14px;
-            }
         }
     </style>
     <script>
@@ -231,3 +211,29 @@
                         <p><strong>Entfernung:</strong> ${distanceInKm} km</p>
                         <p><strong>Reisezeit:</strong> ${hours} Stunden und ${minutes} Minuten</p>
                         <a class="button" href="${appleMapsLink}" target="_blank">Route in Apple Maps öffnen</a>
+                        <a class="button" href="${googleMapsLink}" target="_blank">Route in Google Maps öffnen</a>
+                    `;
+
+                    infoDiv.innerHTML = routeDetails;
+                }
+            );
+        }
+
+        document.addEventListener("DOMContentLoaded", showRoute);
+    </script>
+</head>
+<body>
+    <img id="logo" src="bysam_logo_png.png" alt="By SAM Logo">
+    <h1 id="title">Ihre Route von ... bis ...</h1>
+    <div id="map"></div>
+    <div id="info"></div>
+    <footer>
+        <div class="credits">
+            Website made and maintained by <a href="https://www.instagram.com/by.sam.04/profilecard/?igsh=MWhreTFkeTdnMmJkdg==" target="_blank">bySAM</a>
+        </div>
+        <div>
+            All rights to Apple Maps content are owned by Apple Inc. All other content on this website is owned by bysam.org.
+        </div>
+    </footer>
+</body>
+</html>
