@@ -89,6 +89,9 @@
                     const distanceInKm = (route.distance / 1000).toFixed(2);
                     const travelTimeInMinutes = Math.round(route.expectedTravelTime / 60);
 
+                    // Erstelle einen Link zur Apple Maps App
+                    const appleMapsLink = `https://maps.apple.com/?saddr=${start}&daddr=${end}`;
+
                     let routeDetails = `
                         <p><strong>Entfernung:</strong> ${distanceInKm} km</p>
                         <p><strong>Reisezeit:</strong> ${travelTimeInMinutes} Minuten</p>
@@ -100,6 +103,7 @@
                         routeDetails += `<li>${step.instructions}</li>`;
                     }
                     routeDetails += `</ul>`;
+                    routeDetails += `<p><a href="${appleMapsLink}" target="_blank">Route in Apple Maps öffnen</a></p>`;
                     infoDiv.innerHTML = routeDetails;
                 }
             );
