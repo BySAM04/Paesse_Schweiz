@@ -131,6 +131,24 @@
                     map.showItems([polyline]);
 
                     const infoDiv = document.getElementById("info");
+                    const language = document.getElementById("language").value;
+                    const translations = {
+                        de: {
+                            distance: "Entfernung",
+                            travelTime: "Reisezeit",
+                            routeDetails: "Routenführung",
+                            openInAppleMaps: "Route in Apple Maps öffnen"
+                        },
+                        en: {
+                            distance: "Distance",
+                            travelTime: "Travel Time",
+                            routeDetails: "Route Details",
+                            openInAppleMaps: "Open Route in Apple Maps"
+                        }
+                    };
+
+                    const langText = translations[language];
+
                     const distanceInKm = (route.distance / 1000).toFixed(2);
                     const travelTimeInMinutes = Math.round(route.expectedTravelTime / 60);
 
@@ -140,9 +158,9 @@
                     const appleMapsLink = `https://maps.apple.com/?saddr=${start}&daddr=${end}`;
 
                     let routeDetails = `
-                        <p><strong>Entfernung:</strong> ${distanceInKm} km</p>
-                        <p><strong>Reisezeit:</strong> ${hours} Stunden und ${minutes} Minuten</p>
-                        <p><strong>Routenführung:</strong></p>
+                        <p><strong>${langText.distance}:</strong> ${distanceInKm} km</p>
+                        <p><strong>${langText.travelTime}:</strong> ${hours} Stunden und ${minutes} Minuten</p>
+                        <p><strong>${langText.routeDetails}:</strong></p>
                         <ul>
                     `;
 
@@ -150,10 +168,14 @@
                         routeDetails += `<li>${step.instructions}</li>`;
                     }
                     routeDetails += `</ul>`;
-                    routeDetails += `<p><a href="${appleMapsLink}" target="_blank">Route in Apple Maps öffnen</a></p>`;
+                    routeDetails += `<p><a href="${appleMapsLink}" target="_blank">${langText.openInAppleMaps}</a></p>`;
                     infoDiv.innerHTML = routeDetails;
                 }
             );
+        }
+
+        function changeLanguage() {
+            showRoute(); // Update the route description on language change
         }
 
         document.addEventListener("DOMContentLoaded", () => {
