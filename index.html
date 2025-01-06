@@ -3,27 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apple Maps Route</title>
+    <title>Ihre Route</title>
     <script src="https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.js"></script>
     <style>
+        body {
+            background-color: #2e2e2e; /* Dunkelgrau */
+            color: white; /* Weißer Text */
+            font-family: Arial, sans-serif;
+        }
         #map {
             width: 100%;
             height: 600px;
+            margin-bottom: 20px;
         }
         #info {
-            margin-top: 20px;
-            font-family: Arial, sans-serif;
             padding: 10px;
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
+            background-color: #3a3a3a; /* Etwas helleres Grau */
+            border: 1px solid #555;
+        }
+        select {
+            margin-bottom: 20px;
+            padding: 5px;
+            font-size: 16px;
         }
     </style>
     <script>
+        // Initialisiere MapKit JS mit Token
         mapkit.init({
             authorizationCallback: function (done) {
                 done("eyJraWQiOiJMU1pDR0JMR0c1IiwidHlwIjoiSldUIiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJUR004M1FTSEFIIiwiaWF0IjoxNzM2MTk0NzYwLCJvcmlnaW4iOiJieXNhbTA0LmdpdGh1Yi5pbyJ9.LBJ2V_TbE75r68I08JHytaZx5SnlQ8bl4-e_ZUaDavXxtqk_leB_FKnuFaDeODEwjtR2jeKRQI-3p41tLrBkPg");
             }
         });
+
+        let language = 'de'; // Standard: Deutsch
+
+        function setLanguage(lang) {
+            language = lang;
+            document.body.setAttribute('lang', lang);
+            showRoute(); // Neu rendern
+        }
+
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.round((seconds % 3600) / 60);
+            return hours > 0 ? `${hours} h ${minutes} min` : `${minutes} min`;
+        }
 
         function showRoute() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -31,7 +55,7 @@
             const end = urlParams.get('end');
 
             if (!start || !end) {
-                alert("Bitte Start- und Zielkoordinaten angeben.");
+                alert(language === 'de' ? "Bitte Start- und Zielkoordinaten angeben." : "Please provide start and end coordinates.");
                 return;
             }
 
@@ -41,6 +65,7 @@
             let map = new mapkit.Map("map", {
                 showsCompass: mapkit.FeatureVisibility.Visible,
                 showsScale: mapkit.FeatureVisibility.Visible,
+                colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? mapkit.Map.ColorSchemes.Dark : mapkit.Map.ColorSchemes.Light,
                 center: startCoord,
                 region: new mapkit.CoordinateRegion(
                     startCoord,
@@ -48,8 +73,8 @@
                 )
             });
 
-            let startAnnotation = new mapkit.MarkerAnnotation(startCoord, { title: "Start" });
-            let endAnnotation = new mapkit.MarkerAnnotation(endCoord, { title: "Ziel" });
+            let startAnnotation = new mapkit.MarkerAnnotation(startCoord, { title: language === 'de' ? "Start" : "Start" });
+            let endAnnotation = new mapkit.MarkerAnnotation(endCoord, { title: language === 'de' ? "Ziel" : "Destination" });
             map.addAnnotations([startAnnotation, endAnnotation]);
 
             let directions = new mapkit.Directions();
@@ -62,13 +87,11 @@
                 (error, data) => {
                     if (error) {
                         console.error("Fehler bei der Routenberechnung:", error);
-                        alert("Fehler bei der Routenberechnung: " + error.message);
+                        alert(language === 'de' ? "Fehler bei der Routenberechnung." : "Error calculating the route.");
                         return;
                     }
 
                     let route = data.routes[0];
-                    console.log("Route-Daten:", route);
-
                     let points = [];
                     for (let step of route.steps) {
                         points.push(...step.path);
@@ -87,15 +110,19 @@
 
                     const infoDiv = document.getElementById("info");
                     const distanceInKm = (route.distance / 1000).toFixed(2);
-                    const travelTimeInMinutes = Math.round(route.expectedTravelTime / 60);
+                    const travelTime = formatTime(route.expectedTravelTime);
 
-                    // Erstelle einen Link zur Apple Maps App
+                    // Dynamischen Titel setzen
+                    document.title = language === 'de'
+                        ? `Ihre Route von ${start} bis ${end}`
+                        : `Your route from ${start} to ${end}`;
+
+                    // Routeninformationen anzeigen
                     const appleMapsLink = `https://maps.apple.com/?saddr=${start}&daddr=${end}`;
-
                     let routeDetails = `
-                        <p><strong>Entfernung:</strong> ${distanceInKm} km</p>
-                        <p><strong>Reisezeit:</strong> ${travelTimeInMinutes} Minuten</p>
-                        <p><strong>Routenführung:</strong></p>
+                        <p><strong>${language === 'de' ? "Entfernung" : "Distance"}:</strong> ${distanceInKm} km</p>
+                        <p><strong>${language === 'de' ? "Reisezeit" : "Travel Time"}:</strong> ${travelTime}</p>
+                        <p><strong>${language === 'de' ? "Routenführung" : "Route Instructions"}:</strong></p>
                         <ul>
                     `;
 
@@ -103,7 +130,7 @@
                         routeDetails += `<li>${step.instructions}</li>`;
                     }
                     routeDetails += `</ul>`;
-                    routeDetails += `<p><a href="${appleMapsLink}" target="_blank">Route in Apple Maps öffnen</a></p>`;
+                    routeDetails += `<p><a href="${appleMapsLink}" target="_blank">${language === 'de' ? "Route in Apple Maps öffnen" : "Open route in Apple Maps"}</a></p>`;
                     infoDiv.innerHTML = routeDetails;
                 }
             );
@@ -111,7 +138,11 @@
     </script>
 </head>
 <body onload="showRoute()">
-    <h1>Apple Maps Route</h1>
+    <select onchange="setLanguage(this.value)">
+        <option value="de" selected>Deutsch</option>
+        <option value="en">English</option>
+    </select>
+    <h1 id="title">${language === 'de' ? "Ihre Route" : "Your Route"}</h1>
     <div id="map"></div>
     <div id="info"></div>
 </body>
