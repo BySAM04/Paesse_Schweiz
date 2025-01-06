@@ -49,6 +49,24 @@
             }
         });
 
+        async function getPlaceName(coordinate) {
+            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${coordinate.latitude}&longitude=${coordinate.longitude}&localityLanguage=de`);
+            const data = await response.json();
+            return data.city || data.locality || data.principalSubdivision || "Unbekannter Ort";
+        }
+
+        async function setDynamicTitle(start, end) {
+            const startCoord = { latitude: parseFloat(start.split(",")[0]), longitude: parseFloat(start.split(",")[1]) };
+            const endCoord = { latitude: parseFloat(end.split(",")[0]), longitude: parseFloat(end.split(",")[1]) };
+
+            const startName = await getPlaceName(startCoord);
+            const endName = await getPlaceName(endCoord);
+
+            const title = document.getElementById("dynamic-title");
+            title.textContent = `Ihre Route von ${startName} bis ${endName}`;
+            document.getElementById("title").textContent = title.textContent;
+        }
+
         function showRoute() {
             const urlParams = new URLSearchParams(window.location.search);
             const start = urlParams.get('start');
@@ -58,6 +76,8 @@
                 alert("Bitte Start- und Zielkoordinaten angeben.");
                 return;
             }
+
+            setDynamicTitle(start, end);
 
             let startCoord = new mapkit.Coordinate(...start.split(',').map(Number));
             let endCoord = new mapkit.Coordinate(...end.split(',').map(Number));
@@ -134,29 +154,6 @@
                     infoDiv.innerHTML = routeDetails;
                 }
             );
-        }
-
-        function setDynamicTitle(start, end) {
-            const title = document.getElementById("dynamic-title");
-            title.textContent = `Ihre Route von ${start} bis ${end}`;
-            document.getElementById("title").textContent = title.textContent;
-        }
-
-        function changeLanguage() {
-            const language = document.getElementById("language").value;
-            const translations = {
-                de: {
-                    title: "Ihre Route von ... bis ...",
-                    travelTime: "Reisezeit:",
-                },
-                en: {
-                    title: "Your Route from ... to ...",
-                    travelTime: "Travel time:",
-                },
-            };
-
-            const translation = translations[language];
-            document.querySelector("h1").textContent = translation.title;
         }
 
         document.addEventListener("DOMContentLoaded", () => {
