@@ -141,13 +141,28 @@
                     `;
 
                     for (let step of route.steps) {
-                        routeDetails += `<li>${step.instructions}</li>`;
+                        routeDetails += `<li>${translateInstructions(step.instructions)}</li>`;
                     }
                     routeDetails += `</ul>`;
                     routeDetails += `<p><a href="${appleMapsLink}" target="_blank">Route in Apple Maps öffnen</a></p>`;
                     infoDiv.innerHTML = routeDetails;
                 }
             );
+        }
+
+        function translateInstructions(instruction) {
+            const translations = {
+                "Turn left": "Links abbiegen",
+                "Turn right": "Rechts abbiegen",
+                "Continue straight": "Geradeaus weiterfahren",
+                "Take exit": "Ausfahrt nehmen",
+                "Merge onto": "Auffahren auf",
+                "Keep left": "Links halten",
+                "Keep right": "Rechts halten",
+                "undefined": "Unbekannte Anweisung"
+            };
+
+            return translations[instruction] || instruction;
         }
 
         document.addEventListener("DOMContentLoaded", () => {
