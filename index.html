@@ -178,6 +178,7 @@
         function changeLanguage() {
             currentLanguage = document.getElementById("language").value;
             document.getElementById("info").innerHTML = ""; // Clear route info on language change
+            setDynamicTitle('47.378177,8.540192', '46.94809,7.44744'); // Set title again
             showRoute();
         }
 
