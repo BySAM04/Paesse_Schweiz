@@ -32,7 +32,8 @@
         #info {
             margin-top: 20px;
             padding: 10px;
-            background-color: #1e1e1e;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             border: 1px solid #333;
         }
 
@@ -53,7 +54,7 @@
             margin-top: 20px;
             padding: 10px;
             font-size: 0.9em;
-            background-color: #1e1e1e;
+            background-color: var(--bg-color);
             color: var(--text-color);
         }
 
@@ -180,7 +181,16 @@
             );
         }
 
-        document.addEventListener("DOMContentLoaded", showRoute);
+        function applyTheme() {
+            const theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            applyTheme();
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+            showRoute();
+        });
     </script>
 </head>
 <body>
