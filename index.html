@@ -131,7 +131,7 @@
                     map.showItems([polyline]);
 
                     const infoDiv = document.getElementById("info");
-                    const language = document.getElementById("language").value;
+                    const language = document.getElementById("language") ? document.getElementById("language").value : 'de';
                     const translations = {
                         de: {
                             distance: "Entfernung",
@@ -175,7 +175,13 @@
         }
 
         function changeLanguage() {
-            showRoute(); // Update the route description on language change
+            const urlParams = new URLSearchParams(window.location.search);
+            const start = urlParams.get('start');
+            const end = urlParams.get('end');
+
+            if (start && end) {
+                showRoute(); // Update the route description on language change
+            }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
