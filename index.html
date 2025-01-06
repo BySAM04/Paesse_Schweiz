@@ -105,10 +105,17 @@
                 return;
             }
 
-            setDynamicTitle(start, end);
+            // Prüfe und bereinige Koordinaten (z. B. zusätzliche Leerzeichen entfernen)
+            const startCoords = start.split(",").map(coord => parseFloat(coord.trim()));
+            const endCoords = end.split(",").map(coord => parseFloat(coord.trim()));
 
-            let startCoord = new mapkit.Coordinate(...start.split(',').map(Number));
-            let endCoord = new mapkit.Coordinate(...end.split(',').map(Number));
+            if (startCoords.length !== 2 || endCoords.length !== 2 || isNaN(startCoords[0]) || isNaN(startCoords[1]) || isNaN(endCoords[0]) || isNaN(endCoords[1])) {
+                alert("Ungültige Koordinaten. Bitte prüfen Sie die Eingabe.");
+                return;
+            }
+
+            const startCoord = new mapkit.Coordinate(startCoords[0], startCoords[1]);
+            const endCoord = new mapkit.Coordinate(endCoords[0], endCoords[1]);
 
             let map = new mapkit.Map("map", {
                 showsCompass: mapkit.FeatureVisibility.Visible,
@@ -202,10 +209,11 @@
         document.addEventListener("DOMContentLoaded", () => {
             const theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', theme);
+            showRoute();
         });
     </script>
 </head>
-<body onload="showRoute()">
+<body>
     <img id="logo" src="bysam_logo_png.png" alt="By SAM Logo">
     <h1 id="title">Ihre Route von ... bis ...</h1>
     <div id="map"></div>
