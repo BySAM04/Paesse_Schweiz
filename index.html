@@ -91,20 +91,25 @@
             text-decoration: underline;
         }
 
-        button {
+        .button {
+            display: inline-block;
             background-color: var(--accent-color);
             color: #fff;
-            border: none;
+            text-decoration: none;
             padding: 10px 20px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+            font-weight: 600;
+            margin: 10px 5px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
         }
 
-        button:hover {
+        .button:hover {
             background-color: #005bb5;
         }
+
     </style>
     <script>
         mapkit.init({
@@ -207,8 +212,8 @@
                     let routeDetails = `
                         <p><strong>Entfernung:</strong> ${distanceInKm} km</p>
                         <p><strong>Reisezeit:</strong> ${hours} Stunden und ${minutes} Minuten</p>
-                        <p><a href="${appleMapsLink}" target="_blank">Route in Apple Maps öffnen</a></p>
-                        <p><a href="${googleMapsLink}" target="_blank">Route in Google Maps öffnen</a></p>
+                        <a class="button" href="${appleMapsLink}" target="_blank">Route in Apple Maps öffnen</a>
+                        <a class="button" href="${googleMapsLink}" target="_blank">Route in Google Maps öffnen</a>
                     `;
 
                     infoDiv.innerHTML = routeDetails;
