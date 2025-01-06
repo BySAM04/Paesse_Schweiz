@@ -13,10 +13,12 @@
         #info {
             margin-top: 20px;
             font-family: Arial, sans-serif;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
         }
     </style>
     <script>
-        // Initialisiere MapKit JS mit dem Token
         mapkit.init({
             authorizationCallback: function (done) {
                 done("eyJraWQiOiJMU1pDR0JMR0c1IiwidHlwIjoiSldUIiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJUR004M1FTSEFIIiwiaWF0IjoxNzM2MTk0NzYwLCJvcmlnaW4iOiJieXNhbTA0LmdpdGh1Yi5pbyJ9.LBJ2V_TbE75r68I08JHytaZx5SnlQ8bl4-e_ZUaDavXxtqk_leB_FKnuFaDeODEwjtR2jeKRQI-3p41tLrBkPg");
@@ -24,22 +26,18 @@
         });
 
         function showRoute() {
-            // URL-Parameter auslesen
             const urlParams = new URLSearchParams(window.location.search);
-            const start = urlParams.get('start'); // Startkoordinaten
-            const end = urlParams.get('end'); // Zielkoordinaten
+            const start = urlParams.get('start');
+            const end = urlParams.get('end');
 
-            // Prüfe, ob die Parameter vorhanden sind
             if (!start || !end) {
-                alert("Bitte Start- und Zielkoordinaten in der URL angeben, z. B.: ?start=47.3769,8.5417&end=46.9481,7.4474");
+                alert("Bitte Start- und Zielkoordinaten angeben.");
                 return;
             }
 
-            // Konvertiere die Koordinaten in MapKit-Coordinaten
             let startCoord = new mapkit.Coordinate(...start.split(',').map(Number));
             let endCoord = new mapkit.Coordinate(...end.split(',').map(Number));
 
-            // Initialisiere die Karte
             let map = new mapkit.Map("map", {
                 showsCompass: mapkit.FeatureVisibility.Visible,
                 showsScale: mapkit.FeatureVisibility.Visible,
@@ -50,18 +48,16 @@
                 )
             });
 
-            // Marker für Start und Ziel setzen
             let startAnnotation = new mapkit.MarkerAnnotation(startCoord, { title: "Start" });
             let endAnnotation = new mapkit.MarkerAnnotation(endCoord, { title: "Ziel" });
             map.addAnnotations([startAnnotation, endAnnotation]);
 
-            // Routenberechnung
             let directions = new mapkit.Directions();
             directions.route(
-                { 
-                    origin: startCoord, 
+                {
+                    origin: startCoord,
                     destination: endCoord,
-                    transportType: mapkit.Directions.Transport.Automobile // Alternative: mapkit.Directions.Transport.Walking
+                    transportType: mapkit.Directions.Transport.Automobile
                 },
                 (error, data) => {
                     if (error) {
@@ -70,16 +66,14 @@
                         return;
                     }
 
-                    // Erste Route extrahieren
                     let route = data.routes[0];
+                    console.log("Route-Daten:", route);
 
-                    // Punkte aus den Steps der Route extrahieren
                     let points = [];
                     for (let step of route.steps) {
                         points.push(...step.path);
                     }
 
-                    // PolylineOverlay erstellen und zur Karte hinzufügen
                     let polyline = new mapkit.PolylineOverlay(points, {
                         style: new mapkit.Style({
                             lineWidth: 5,
@@ -89,18 +83,15 @@
                     });
 
                     map.addOverlay(polyline);
-
-                    // Karte so einstellen, dass die gesamte Route sichtbar ist
                     map.showItems([polyline]);
 
-                    // Routeninformationen anzeigen
                     const infoDiv = document.getElementById("info");
-                    const distanceInKm = (route.distance / 1000).toFixed(2); // Entfernung in km
-                    const travelTimeInMinutes = Math.round(route.expectedTravelTime / 60); // Zeit in Minuten
+                    const distanceInKm = (route.distance / 1000).toFixed(2);
+                    const travelTimeInMinutes = Math.round(route.expectedTravelTime / 60);
+
                     let routeDetails = `
                         <p><strong>Entfernung:</strong> ${distanceInKm} km</p>
                         <p><strong>Reisezeit:</strong> ${travelTimeInMinutes} Minuten</p>
-                        <p><strong>Höhenunterschied:</strong> Berechnung nicht verfügbar (MapKit unterstützt das aktuell nicht)</p>
                         <p><strong>Routenführung:</strong></p>
                         <ul>
                     `;
