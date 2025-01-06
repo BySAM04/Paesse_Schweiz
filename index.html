@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Apple Maps Route</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <script src="https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.js"></script>
+    <script>
+        // MapKit JS initialisieren
+        mapkit.init({
+            authorizationCallback: function(done) {
+                // Füge hier deinen MapKit JS Token ein
+                done("https://jwt.io/#debugger-io?token=eyJhbGciOiJIUzI1NiIsImtpZCI6IjY4TldETUxXRkoifQ.eyJpc3MiOiJUR004M1FTSEFIIiwiaWF0IjoxNzM2MTgzMjQ3LCJleHAiOjE3MzYxODY4NDd9.kw0zTm91b9Axi1wv0icm29JiVUeBnvDdh8CJycYxh4Q");
+            }
+        });
+
+        function showRoute() {
+            // URL-Parameter auslesen
+            const urlParams = new URLSearchParams(window.location.search);
+            const start = urlParams.get('start'); // Startkoordinaten
+            const end = urlParams.get('end');     // Zielkoordinaten
+
+            // Koordinaten erstellen
+            let startCoord = new mapkit.Coordinate(...start.split(',').map(Number));
+            let endCoord = new mapkit.Coordinate(...end.split(',').map(Number));
+
+            // Karte erstellen
+            let map = new mapkit.Map("map", {
+                showsCompass: mapkit.FeatureVisibility.Visible,
+                showsScale: mapkit.FeatureVisibility.Visible
+            });
+
+            // Route berechnen
+            let directions = new mapkit.Directions();
+            directions.route({
+                origin: startCoord,
+                destination: endCoord
+            }, (error, data) => {
+                if (error) {
+                    console.error("Fehler bei der Routenberechnung:", error);
+                    return;
+                }
+
+                // Route auf der Karte anzeigen
+                let route = data.routes[0];
+                map.showItems([route.polyline]);
+            });
+        }
+    </script>
+</head>
+<body onload="showRoute()">
+    <h1>Apple Maps Route</h1>
+    <div id="map" style="width: 100%; height: 600px;"></div>
+</body>
+</html>
