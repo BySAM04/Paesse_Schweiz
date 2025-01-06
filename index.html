@@ -56,6 +56,19 @@
             background-color: #1e1e1e;
             color: var(--text-color);
         }
+
+        .credits {
+            margin-bottom: 10px;
+        }
+
+        .credits a {
+            color: #007aff;
+            text-decoration: none;
+        }
+
+        .credits a:hover {
+            text-decoration: underline;
+        }
     </style>
     <script>
         mapkit.init({
@@ -198,7 +211,12 @@
     <div id="map"></div>
     <div id="info"></div>
     <footer>
-        All rights to Apple Maps content are owned by Apple Inc. All other content on this website is owned by bysam.org.
+        <div class="credits">
+            Website made and maintained by <a href="https://www.instagram.com/by.sam.04/profilecard/?igsh=MWhreTFkeTdnMmJkdg==" target="_blank">bySAM</a>
+        </div>
+        <div>
+            All rights to Apple Maps content are owned by Apple Inc. All other content on this website is owned by bysam.org.
+        </div>
     </footer>
 </body>
 </html>
