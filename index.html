@@ -35,37 +35,29 @@
             background-color: #1e1e1e;
             border: 1px solid #333;
         }
-
-        #language-selector {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
     </style>
     <script>
-        let currentLanguage = 'de';
-
         mapkit.init({
             authorizationCallback: function (done) {
                 done("eyJraWQiOiJMU1pDR0JMR0c1IiwidHlwIjoiSldUIiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJUR004M1FTSEFIIiwiaWF0IjoxNzM2MTk0NzYwLCJvcmlnaW4iOiJieXNhbTA0LmdpdGh1Yi5pbyJ9.LBJ2V_TbE75r68I08JHytaZx5SnlQ8bl4-e_ZUaDavXxtqk_leB_FKnuFaDeODEwjtR2jeKRQI-3p41tLrBkPg");
             }
         });
 
-        async function getPlaceName(coordinate, language) {
-            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${coordinate.latitude}&longitude=${coordinate.longitude}&localityLanguage=${language}`);
+        async function getPlaceName(coordinate) {
+            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${coordinate.latitude}&longitude=${coordinate.longitude}&localityLanguage=de`);
             const data = await response.json();
-            return data.city || data.locality || data.principalSubdivision || "Unknown location";
+            return data.city || data.locality || data.principalSubdivision || "Unbekannter Ort";
         }
 
         async function setDynamicTitle(start, end) {
             const startCoord = { latitude: parseFloat(start.split(",")[0]), longitude: parseFloat(start.split(",")[1]) };
             const endCoord = { latitude: parseFloat(end.split(",")[0]), longitude: parseFloat(end.split(",")[1]) };
 
-            const startName = await getPlaceName(startCoord, currentLanguage);
-            const endName = await getPlaceName(endCoord, currentLanguage);
+            const startName = await getPlaceName(startCoord);
+            const endName = await getPlaceName(endCoord);
 
             const title = document.getElementById("dynamic-title");
-            title.textContent = currentLanguage === 'de' ? `Ihre Route von ${startName} bis ${endName}` : `Your Route from ${startName} to ${endName}`;
+            title.textContent = `Ihre Route von ${startName} bis ${endName}`;
             document.getElementById("title").textContent = title.textContent;
         }
 
@@ -75,7 +67,7 @@
             const end = urlParams.get('end');
 
             if (!start || !end) {
-                alert(currentLanguage === 'de' ? "Bitte Start- und Zielkoordinaten angeben." : "Please provide start and destination coordinates.");
+                alert("Bitte Start- und Zielkoordinaten angeben.");
                 return;
             }
 
@@ -95,8 +87,8 @@
                 colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? mapkit.Map.ColorSchemes.Dark : mapkit.Map.ColorSchemes.Light
             });
 
-            let startAnnotation = new mapkit.MarkerAnnotation(startCoord, { title: currentLanguage === 'de' ? "Start" : "Start" });
-            let endAnnotation = new mapkit.MarkerAnnotation(endCoord, { title: currentLanguage === 'de' ? "Ziel" : "Destination" });
+            let startAnnotation = new mapkit.MarkerAnnotation(startCoord, { title: "Start" });
+            let endAnnotation = new mapkit.MarkerAnnotation(endCoord, { title: "Ziel" });
             map.addAnnotations([startAnnotation, endAnnotation]);
 
             let directions = new mapkit.Directions();
@@ -108,13 +100,13 @@
                 },
                 (error, data) => {
                     if (error) {
-                        console.error("Routing error:", error);
-                        alert(currentLanguage === 'de' ? "Fehler bei der Routenberechnung." : "Error calculating the route.");
+                        console.error("Fehler bei der Routenberechnung:", error);
+                        alert("Fehler bei der Routenberechnung: " + error.message);
                         return;
                     }
 
                     let route = data.routes[0];
-                    console.log("Route data:", route);
+                    console.log("Route-Daten:", route);
 
                     let points = [];
                     for (let step of route.steps) {
@@ -133,23 +125,6 @@
                     map.showItems([polyline]);
 
                     const infoDiv = document.getElementById("info");
-                    const translations = {
-                        de: {
-                            distance: "Entfernung",
-                            travelTime: "Reisezeit",
-                            routeDetails: "Routenführung",
-                            openInAppleMaps: "Route in Apple Maps öffnen"
-                        },
-                        en: {
-                            distance: "Distance",
-                            travelTime: "Travel Time",
-                            routeDetails: "Route Details",
-                            openInAppleMaps: "Open Route in Apple Maps"
-                        }
-                    };
-
-                    const langText = translations[currentLanguage];
-
                     const distanceInKm = (route.distance / 1000).toFixed(2);
                     const travelTimeInMinutes = Math.round(route.expectedTravelTime / 60);
 
@@ -159,9 +134,9 @@
                     const appleMapsLink = `https://maps.apple.com/?saddr=${start}&daddr=${end}`;
 
                     let routeDetails = `
-                        <p><strong>${langText.distance}:</strong> ${distanceInKm} km</p>
-                        <p><strong>${langText.travelTime}:</strong> ${hours} ${currentLanguage === 'de' ? 'Stunden' : 'hours'} ${minutes} ${currentLanguage === 'de' ? 'Minuten' : 'minutes'}</p>
-                        <p><strong>${langText.routeDetails}:</strong></p>
+                        <p><strong>Entfernung:</strong> ${distanceInKm} km</p>
+                        <p><strong>Reisezeit:</strong> ${hours} Stunden und ${minutes} Minuten</p>
+                        <p><strong>Routenführung:</strong></p>
                         <ul>
                     `;
 
@@ -169,17 +144,10 @@
                         routeDetails += `<li>${step.instructions}</li>`;
                     }
                     routeDetails += `</ul>`;
-                    routeDetails += `<p><a href="${appleMapsLink}" target="_blank">${langText.openInAppleMaps}</a></p>`;
+                    routeDetails += `<p><a href="${appleMapsLink}" target="_blank">Route in Apple Maps öffnen</a></p>`;
                     infoDiv.innerHTML = routeDetails;
                 }
             );
-        }
-
-        function changeLanguage() {
-            currentLanguage = document.getElementById("language").value;
-            document.getElementById("info").innerHTML = ""; // Clear route info on language change
-            setDynamicTitle('47.378177,8.540192', '46.94809,7.44744'); // Set title again
-            showRoute();
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -189,13 +157,6 @@
     </script>
 </head>
 <body onload="showRoute()">
-    <div id="language-selector">
-        <label for="language">Sprache: </label>
-        <select id="language" onchange="changeLanguage()">
-            <option value="de">Deutsch</option>
-            <option value="en">English</option>
-        </select>
-    </div>
     <h1 id="title">Ihre Route von ... bis ...</h1>
     <div id="map"></div>
     <div id="info"></div>
