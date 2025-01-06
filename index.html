@@ -134,6 +134,11 @@
             document.getElementById("title").textContent = title.textContent;
         }
 
+        function applyTheme() {
+            const theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+
         function showRoute() {
             const urlParams = new URLSearchParams(window.location.search);
             const start = urlParams.get('start');
@@ -219,7 +224,11 @@
             );
         }
 
-        document.addEventListener("DOMContentLoaded", showRoute);
+        document.addEventListener("DOMContentLoaded", () => {
+            applyTheme();
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+            showRoute();
+        });
     </script>
 </head>
 <body>
@@ -232,8 +241,4 @@
             Website made and maintained by <a href="https://www.instagram.com/by.sam.04/profilecard/?igsh=MWhreTFkeTdnMmJkdg==" target="_blank">bySAM</a>
         </div>
         <div>
-            All rights to Apple Maps content are owned by Apple Inc. All other content on this website is owned by bysam.org.
-        </div>
-    </footer>
-</body>
-</html>
+            All rights to Apple Maps
