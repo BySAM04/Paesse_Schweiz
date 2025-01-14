@@ -143,6 +143,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const start = urlParams.get('start');
             const end = urlParams.get('end');
+            const waypoints = urlParams.get('waypoints');
 
             if (!start || !end) {
                 alert("Bitte Start- und Zielkoordinaten angeben.");
@@ -209,7 +210,7 @@
                     const hours = Math.floor(travelTimeInMinutes / 60);
                     const minutes = travelTimeInMinutes % 60;
 
-                    const appleMapsLink = `https://maps.apple.com/?saddr=${start}&daddr=${end}`;
+                    const appleMapsLink = `https://maps.apple.com/?saddr=${start}&daddr=${waypoints ? waypoints + "+to:" : ""}${end}`;
                     const googleMapsLink = `https://www.google.com/maps/dir/?api=1&origin=${start}&destination=${end}`;
 
                     let routeDetails = `
@@ -241,4 +242,8 @@
             Website made and maintained by <a href="https://www.instagram.com/by.sam.04/profilecard/?igsh=MWhreTFkeTdnMmJkdg==" target="_blank">bySAM</a>
         </div>
         <div>
-            All rights to Apple Maps content are owned by Apple Inc. All other content on this website is owned by bysam.org
+            All rights to Apple Maps content are owned by Apple Inc. All other content on this website is owned by bysam.org.
+        </div>
+    </footer>
+</body>
+</html>
