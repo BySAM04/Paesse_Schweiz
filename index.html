@@ -139,11 +139,6 @@
             document.documentElement.setAttribute('data-theme', theme);
         }
 
-        function parseCoordinates(coordString) {
-            const [latitude, longitude] = coordString.split(",").map(Number);
-            return new mapkit.Coordinate(latitude, longitude);
-        }
-
         function showRoute() {
             const urlParams = new URLSearchParams(window.location.search);
             const start = urlParams.get('start');
@@ -158,35 +153,22 @@
             // Dynamischen Titel setzen
             setDynamicTitle(start, end);
 
-            const startCoords = start.split(",").map(Number);
-            const endCoords = end.split(",").map(Number);
-            const startCoord = new mapkit.Coordinate(startCoords[0], startCoords[1]);
-            const endCoord = new mapkit.Coordinate(endCoords[0], endCoords[1]);
-            const waypointCoords = waypoints
-                ? waypoints.split(";").map(parseCoordinates)
-                : [];
-
-            let map = new mapkit.Map("map", {
+            const map = new mapkit.Map("map", {
                 showsCompass: mapkit.FeatureVisibility.Visible,
                 showsScale: mapkit.FeatureVisibility.Visible,
-                center: startCoord,
-                region: new mapkit.CoordinateRegion(
-                    startCoord,
-                    new mapkit.CoordinateSpan(0.5, 0.5)
-                ),
+                center: new mapkit.Coordinate(...start.split(",").map(Number)),
                 colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? mapkit.Map.ColorSchemes.Dark : mapkit.Map.ColorSchemes.Light
             });
 
+            const startCoord = new mapkit.Coordinate(...start.split(",").map(Number));
+            const endCoord = new mapkit.Coordinate(...end.split(",").map(Number));
+            const waypointCoords = waypoints ? waypoints.split(";").map(wp => new mapkit.Coordinate(...wp.split(",").map(Number))) : [];
+
             let annotations = [
                 new mapkit.MarkerAnnotation(startCoord, { title: "Start" }),
-                ...waypointCoords.map((coord, index) =>
-                    new mapkit.MarkerAnnotation(coord, {
-                        title: `Zwischenziel ${index + 1}`
-                    })
-                ),
+                ...waypointCoords.map((wp, index) => new mapkit.MarkerAnnotation(wp, { title: `Zwischenziel ${index + 1}` })),
                 new mapkit.MarkerAnnotation(endCoord, { title: "Ziel" })
             ];
-
             map.addAnnotations(annotations);
 
             let directions = new mapkit.Directions();
@@ -205,35 +187,14 @@
                     }
 
                     let route = data.routes[0];
-                    let points = route.steps.flatMap(step => step.path);
-                    let polyline = new mapkit.PolylineOverlay(points, {
+                    let polyline = new mapkit.PolylineOverlay(route.path, {
                         style: new mapkit.Style({
                             lineWidth: 5,
                             strokeColor: "#007aff",
                             strokeOpacity: 0.8
                         })
                     });
-
                     map.addOverlay(polyline);
-                    map.showItems([polyline]);
-
-                    const infoDiv = document.getElementById("info");
-                    const distanceInKm = (route.distance / 1000).toFixed(2);
-                    const travelTimeInMinutes = Math.round(route.expectedTravelTime / 60);
-                    const hours = Math.floor(travelTimeInMinutes / 60);
-                    const minutes = travelTimeInMinutes % 60;
-
-                    const appleMapsLink = `https://maps.apple.com/?saddr=${start}&daddr=${waypoints ? waypoints + "+to:" : ""}${end}`;
-                    const googleMapsLink = `https://www.google.com/maps/dir/?api=1&origin=${start}&destination=${end}`;
-
-                    let routeDetails = `
-                        <p><strong>Entfernung:</strong> ${distanceInKm} km</p>
-                        <p><strong>Reisezeit:</strong> ${hours} Stunden und ${minutes} Minuten</p>
-                        <a class="button" href="${appleMapsLink}" target="_blank">Route in Apple Maps öffnen</a>
-                        <a class="button" href="${googleMapsLink}" target="_blank">Route in Google Maps öffnen</a>
-                    `;
-
-                    infoDiv.innerHTML = routeDetails;
                 }
             );
         }
