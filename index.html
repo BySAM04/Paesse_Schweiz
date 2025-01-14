@@ -143,7 +143,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const start = urlParams.get('start');
             const end = urlParams.get('end');
-            const waypoints = urlParams.get('waypoints');
+            const waypoints = urlParams.get('waypoints') ? urlParams.get('waypoints').split(";") : [];
 
             if (!start || !end) {
                 alert("Bitte Start- und Zielkoordinaten angeben.");
@@ -158,6 +158,11 @@
             const startCoord = new mapkit.Coordinate(startCoords[0], startCoords[1]);
             const endCoord = new mapkit.Coordinate(endCoords[0], endCoords[1]);
 
+            const waypointCoords = waypoints.map(waypoint => {
+                const [lat, lon] = waypoint.split(",").map(Number);
+                return new mapkit.Coordinate(lat, lon);
+            });
+
             let map = new mapkit.Map("map", {
                 showsCompass: mapkit.FeatureVisibility.Visible,
                 showsScale: mapkit.FeatureVisibility.Visible,
@@ -169,16 +174,24 @@
                 colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? mapkit.Map.ColorSchemes.Dark : mapkit.Map.ColorSchemes.Light
             });
 
-            let startAnnotation = new mapkit.MarkerAnnotation(startCoord, { title: "Start" });
-            let endAnnotation = new mapkit.MarkerAnnotation(endCoord, { title: "Ziel" });
-            map.addAnnotations([startAnnotation, endAnnotation]);
+            let annotations = [
+                new mapkit.MarkerAnnotation(startCoord, { title: "Start" }),
+                new mapkit.MarkerAnnotation(endCoord, { title: "Ziel" })
+            ];
+
+            waypointCoords.forEach((coord, index) => {
+                annotations.push(new mapkit.MarkerAnnotation(coord, { title: `Zwischenziel ${index + 1}` }));
+            });
+
+            map.addAnnotations(annotations);
 
             let directions = new mapkit.Directions();
             directions.route(
                 {
                     origin: startCoord,
                     destination: endCoord,
-                    transportType: mapkit.Directions.Transport.Automobile
+                    transportType: mapkit.Directions.Transport.Automobile,
+                    stops: waypointCoords
                 },
                 (error, data) => {
                     if (error) {
@@ -210,8 +223,8 @@
                     const hours = Math.floor(travelTimeInMinutes / 60);
                     const minutes = travelTimeInMinutes % 60;
 
-                    const appleMapsLink = `https://maps.apple.com/?saddr=${start}&daddr=${waypoints ? waypoints + "+to:" : ""}${end}`;
-                    const googleMapsLink = `https://www.google.com/maps/dir/?api=1&origin=${start}&destination=${end}`;
+                    const appleMapsLink = `https://maps.apple.com/?saddr=${start}&daddr=${waypoints.length ? waypoints.join("+to:") + "+to:" : ""}${end}`;
+                    const googleMapsLink = `https://www.google.com/maps/dir/?api=1&origin=${start}&destination=${end}&waypoints=${waypoints.join("|")}`;
 
                     let routeDetails = `
                         <p><strong>Entfernung:</strong> ${distanceInKm} km</p>
