@@ -6,156 +6,57 @@
     <title id="dynamic-title">Ihre Route von ... bis ...</title>
     <script src="https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.js"></script>
     <style>
-        :root {
-            --bg-color: #f5f5f7;
-            --text-color: #1d1d1f;
-            --accent-color: #0071e3;
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #1d1d1f;
-            --text-color: #f5f5f7;
-            --accent-color: #0a84ff;
-        }
-
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: var(--font-family);
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
         }
 
         #map {
             width: 100%;
             height: 600px;
             margin: 20px auto;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         #info {
-            margin: 20px auto;
-            padding: 20px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
             width: 90%;
             max-width: 800px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        #logo {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 80px;
-        }
-
-        h1 {
-            margin: 40px auto 20px;
-            text-align: center;
-            font-size: 32px;
-            font-weight: 600;
-            line-height: 1.2;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            max-width: calc(100% - 150px);
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 40px;
+            margin: 20px auto;
             padding: 20px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-size: 14px;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .credits {
-            margin-bottom: 10px;
-        }
-
-        .credits a {
-            color: var(--accent-color);
-            text-decoration: none;
-        }
-
-        .credits a:hover {
-            text-decoration: underline;
-        }
-
-        .button {
-            display: inline-block;
-            background-color: var(--accent-color);
-            color: #fff;
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 24px;
-            font-size: 16px;
-            font-weight: 600;
-            margin: 10px 5px;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s ease;
-        }
-
-        .button:hover {
-            background-color: #005bb5;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
     </style>
     <script>
         mapkit.init({
             authorizationCallback: function (done) {
-                done("eyJraWQiOiJLU1pDR0JMR0c1...");
+                done("eyJraWQiOiJLU1pDR0...");
             }
         });
-
-        async function setDynamicTitle(start, end) {
-            const title = document.getElementById("dynamic-title");
-            title.textContent = `Ihre Route von ${start} bis ${end}`;
-            document.getElementById("title").textContent = title.textContent;
-        }
-
-        function applyTheme() {
-            const theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-        }
 
         function showRoute() {
             const urlParams = new URLSearchParams(window.location.search);
             const start = urlParams.get('start');
             const end = urlParams.get('end');
-            const waypointsParam = urlParams.get('waypoints');
+            const waypoints = urlParams.get('waypoints') ? urlParams.get('waypoints').split(';') : [];
 
             if (!start || !end) {
                 alert("Bitte Start- und Zielkoordinaten angeben.");
                 return;
             }
 
-            setDynamicTitle(start, end);
-
             const map = new mapkit.Map("map", {
                 center: new mapkit.Coordinate(...start.split(",").map(Number)),
                 showsCompass: mapkit.FeatureVisibility.Visible,
-                showsScale: mapkit.FeatureVisibility.Visible,
-                colorScheme: window.matchMedia('(prefers-color-scheme: dark)').matches ? mapkit.Map.ColorSchemes.Dark : mapkit.Map.ColorSchemes.Light
+                showsScale: mapkit.FeatureVisibility.Visible
             });
 
-            const waypoints = waypointsParam ? waypointsParam.split(";") : [];
             const points = [start, ...waypoints, end];
-
-            let annotations = points.map((coord, index) => {
-                const label = index === 0
-                    ? "Start"
-                    : index === points.length - 1
-                        ? "Ziel"
-                        : `Zwischenziel ${index}`;
+            const annotations = points.map((coord, index) => {
+                const label = index === 0 ? "Start" : (index === points.length - 1 ? "Ziel" : `Zwischenziel ${index}`);
                 return new mapkit.MarkerAnnotation(
                     new mapkit.Coordinate(...coord.split(",").map(Number)),
                     { title: label }
@@ -167,66 +68,50 @@
             const infoDiv = document.getElementById("info");
             infoDiv.innerHTML = "";
 
-            (async function calculateRoutes() {
-                for (let i = 0; i < points.length - 1; i++) {
-                    const origin = new mapkit.Coordinate(...points[i].split(",").map(Number));
-                    const destination = new mapkit.Coordinate(...points[i + 1].split(",").map(Number));
+            for (let i = 0; i < points.length - 1; i++) {
+                const origin = new mapkit.Coordinate(...points[i].split(",").map(Number));
+                const destination = new mapkit.Coordinate(...points[i + 1].split(",").map(Number));
 
-                    directions.route(
-                        { origin, destination, transportType: mapkit.Directions.Transport.Automobile },
-                        (error, data) => {
-                            if (error) {
-                                console.error("Fehler bei der Routenberechnung:", error);
-                                infoDiv.innerHTML += `<p>Fehler bei Abschnitt ${i + 1}.</p>`;
-                                return;
-                            }
-
-                            const route = data.routes[0];
-                            const distance = (route.distance / 1000).toFixed(2);
-                            const time = route.expectedTravelTime;
-                            const hours = Math.floor(time / 3600);
-                            const minutes = Math.round((time % 3600) / 60);
-
-                            infoDiv.innerHTML += `
-                                <p><strong>Abschnitt ${i + 1}:</strong></p>
-                                <p>Entfernung: ${distance} km</p>
-                                <p>Reisezeit: ${hours} Stunden und ${minutes} Minuten</p>
-                                <hr>
-                            `;
-
-                            const polyline = new mapkit.PolylineOverlay(route.path, {
-                                style: new mapkit.Style({
-                                    lineWidth: 5,
-                                    strokeColor: "#007aff",
-                                    strokeOpacity: 0.8
-                                })
-                            });
-                            map.addOverlay(polyline);
+                directions.route(
+                    { origin, destination, transportType: mapkit.Directions.Transport.Automobile },
+                    (error, data) => {
+                        if (error) {
+                            console.error("Fehler bei der Routenberechnung:", error);
+                            infoDiv.innerHTML += `<p>Fehler bei Abschnitt ${i + 1}.</p>`;
+                            return;
                         }
-                    );
-                }
-            })();
+
+                        const route = data.routes[0];
+                        const distance = (route.distance / 1000).toFixed(2);
+                        const time = Math.round(route.expectedTravelTime / 60);
+                        const hours = Math.floor(time / 60);
+                        const minutes = time % 60;
+
+                        infoDiv.innerHTML += `
+                            <p><strong>Abschnitt ${i + 1}:</strong></p>
+                            <p>Entfernung: ${distance} km</p>
+                            <p>Reisezeit: ${hours} Stunden und ${minutes} Minuten</p>
+                            <hr>
+                        `;
+
+                        const polyline = new mapkit.PolylineOverlay(route.path, {
+                            style: new mapkit.Style({
+                                lineWidth: 5,
+                                strokeColor: "#007aff",
+                                strokeOpacity: 0.8
+                            })
+                        });
+                        map.addOverlay(polyline);
+                    }
+                );
+            }
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            applyTheme();
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
-            showRoute();
-        });
+        document.addEventListener("DOMContentLoaded", showRoute);
     </script>
 </head>
 <body>
-    <img id="logo" src="bysam_logo_png.png" alt="By SAM Logo">
-    <h1 id="title">Ihre Route von ... bis ...</h1>
     <div id="map"></div>
     <div id="info"></div>
-    <footer>
-        <div class="credits">
-            Website made and maintained by <a href="https://www.instagram.com/by.sam.04/profilecard/?igsh=MWhreTFkeTdnMmJkdg==" target="_blank">bySAM</a>
-        </div>
-        <div>
-            All rights to Apple Maps content are owned by Apple Inc. All other content on this website is owned by bysam.org.
-        </div>
-    </footer>
 </body>
 </html>
